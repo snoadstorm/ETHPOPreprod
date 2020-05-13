@@ -12,7 +12,7 @@ library(readxl)
 library(readr)
 
 
-# model without UK-born/non UK-born
+# model UK-born/non UK-born
 ##TODO:
 
 # load ONS starting population
@@ -26,57 +26,102 @@ dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births.csv")
 dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths.csv")
 
 
-years <- sort(unique(dat_pop$year))
-year0 <- 2011
-
-# subset population data
-dat_pop <-
-  dat_pop %>%
-  filter(year == year0,
-         sex == "M",
-         ETH.group == "BAN")
-
-
-res <- vector("list", length(years))
-names(res) <- years
-
-pop <- filter(dat_pop, year == year0)
-res[[year0]] <- pop
-
-for (i in years[-1]) {
-
-  pop <-
-    pop %>%
-    age_population() %>%
-    add_births(dat_births) %>%
-    add_deaths(dat_deaths)
-
-  res[[i]] <- pop
-}
+res <-
+  run_model(dat_pop,
+            dat_births,
+            dat_deaths,
+            dat_inflow,
+            dat_outflow)
 
 
 # functions ---------------------------------------------------------------
 
+
+run_model <- function(dat_pop,
+                      dat_births,
+                      dat_deaths,
+                      dat_inflow,
+                      dat_outflow,
+                      year0 = min(dat_pop$year)) {
+
+  years <- sort(unique(dat_pop$year))
+
+  res <- vector("list", length(years))
+  names(res) <- years
+
+  pop <- filter(dat_pop, year == year0) %>% select(-X1)
+  res[[as.character(year0)]] <- pop
+
+  for (i in as.character(years[-1])) {
+
+    pop <-
+      pop %>%
+      age_population() %>%
+      add_births(dat_births) %>%
+      add_deaths(dat_deaths) %>%
+      add_inflow(dat_inflow) %>%
+      add_outflow(dat_outflow)
+
+    res[[i]] <- pop
+
+    message("year ", i)
+  }
+
+  res
+}
+
+
 # newborn population at age 0
-add_births <- function(dat_pop, dat_births) {
+add_births <- function(pop, dat_births) {
 
-  if (any(dat_pop$age == 0)) stop("Shouldn't be any 0 aged in population data")
+  if (any(pop$age == 0)) stop("Shouldn't be any 0 aged in population data")
 
-  dat_births %>%
+  xx <-
+    dat_births %>%
+    select(-X1) %>%
     mutate(age = 0) %>%
+    filter(year == pop$year[1],
+           ETH.group %in% unique(pop$ETH.group),
+           sex %in% unique(pop$sex)) %>%
     rename(pop = births) %>%
-    rbind.data.frame(dat_pop) %>%
-    arrange("year", "ETH.group",  "sex", "age")
+    rbind.data.frame(pop) %>%
+    arrange(year, ETH.group, sex, age)
 }
 
 # decrease population
 add_deaths <- function(dat_pop, dat_deaths) {
 
-  merge(dat_pop,
-        dat_deaths,
-        by = c("year", "age", "ETH.group", "sex")) %>%
+  dat_deaths %>%
+    select(-agegrp, -X1) %>%
+    merge(dat_pop,
+          by = c("year", "age", "ETH.group", "sex")) %>%
     mutate(pop = pop - deaths) %>%
+    arrange(year, ETH.group, sex, age) %>%
     select(-deaths)
+}
+
+# inmigration population
+add_inflow <- function(dat_pop, dat_inflow) {
+
+  dat_inflow %>%
+    select(-X1) %>%
+    merge(dat_pop,
+          by = c("year", "age", "ETH.group", "sex")) %>%
+    mutate(pop = pop + inmigrants) %>%
+    arrange(year, ETH.group, sex, age) %>%
+    select(-inmigrants)
+}
+
+# outmigration population
+add_outflow <- function(dat_pop, dat_outflow) {
+
+  dat_outflow %>%
+    select(-X1) %>%
+    merge(dat_pop,
+          by = c("year", "age", "ETH.group", "sex")) %>%
+    mutate(pop = pop - outmigrants) %>%
+    arrange(year, ETH.group, sex, age) %>%
+    select(-outmigrants)
 }
 
 # increment everyone by one year
