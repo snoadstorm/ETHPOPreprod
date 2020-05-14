@@ -73,5 +73,6 @@ age_population <- function(pop) {
     mutate(age = ifelse(age < 100, age + 1, age), # age 100 means >=100
            year = year + 1) %>%
     group_by(ETH.group, sex, year, age) %>%
-    summarise(pop = sum(pop))             # sum all 100 ages
+    summarise(pop = sum(pop)) %>%                 # sum all 100 ages
+    ungroup()
 }
