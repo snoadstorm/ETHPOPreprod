@@ -1,5 +1,18 @@
 
-# if data = NA then skipped in calculation (identity function)
+#' run_model
+#'
+#' if data = NA then skipped in calculation (identity function)
+#'
+#' @param dat_pop
+#' @param dat_births
+#' @param dat_deaths
+#' @param dat_inflow
+#' @param dat_outflow
+#' @param year0
+#'
+#' @return
+#' @export
+#'
 run_model <- function(dat_pop,
                       dat_births = NA,
                       dat_deaths = NA,

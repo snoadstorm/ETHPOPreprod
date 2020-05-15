@@ -11,6 +11,8 @@ library(tidyr)
 library(readxl)
 library(readr)
 library(tibble)
+library(ggplot2)
+library(ETHPOPreprod)
 
 
 # model UK-born/non UK-born
@@ -20,11 +22,11 @@ library(tibble)
 dat_ons <- read_ONS_census2011()
 
 # load ETHPOP cleaned data
-dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop.csv")
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants.csv")
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants.csv")
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births.csv")
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths.csv")
+dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv")
+dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv")
+dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv")
+dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_Leeds2.csv")
+dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv")
 
 
 res <-
@@ -34,3 +36,32 @@ res <-
             dat_inflow,
             dat_outflow)
 
+sim_pop <- bind_rows(res)
+
+sim_plot <-
+  sim_pop %>%
+  filter(sex == "M",
+         ETH.group == "BAN",
+         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
+  mutate(year = as.factor(year))
+  # mutate(eth_sex_year = interaction(ETH.group, sex, year))
+
+dat_plot <-
+  dat_pop %>%
+  filter(sex == "M",
+         ETH.group == "BAN",
+         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
+  mutate(year = as.factor(year))
+
+
+p1 <-
+  ggplot(sim_plot, aes(x=age, y=pop, colour = year)) +
+  geom_line() +
+  ylim(0,11000)
+
+p2 <-
+  ggplot(dat_plot, aes(x=age, y=pop, colour = year)) +
+  geom_line() +
+  ylim(0,11000)
+
+gridExtra::grid.arrange(p1, p2)
