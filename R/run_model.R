@@ -7,6 +7,10 @@ run_model <- function(dat_pop,
                       dat_outflow = NA,
                       year0 = min(dat_pop$year)) {
 
+  add_deaths <- rm_pop(deaths)
+  add_inflow <- add_pop(inmigrants)
+  add_outflow <- rm_pop(outmigrants)
+
   # sequence of years to estimate for
   years <- sort(unique(dat_pop$year))
 

@@ -1,4 +1,17 @@
 
+# increment everyone by one year
+#
+age_population <- function(pop) {
+
+  pop %>%
+    mutate(age = ifelse(age < 100, age + 1, age), # age 100 means >=100
+           year = year + 1) %>%
+    group_by(ETH.group, sex, year, age) %>%
+    summarise(pop = sum(pop)) %>%                 # sum all 100 ages
+    ungroup()
+}
+
+
 # newborn population increase
 #
 add_births <- function(pop, dat_births) {
@@ -17,62 +30,34 @@ add_births <- function(pop, dat_births) {
     arrange(year, ETH.group, sex, age) # sort ages in ascending order
 }
 
-# decrease population
-#
-add_deaths <- function(pop, dat_deaths) {
 
-  if (all(is.na(dat_deaths))) return(pop)
+add_pop <- function(delta_col) {
 
-  dat_deaths %>%
-    select(-agegrp, -X1) %>%
-    merge(pop,
-          by = c("year", "age", "ETH.group", "sex")) %>%
-    mutate(pop = pop - deaths) %>%
-    arrange(year, ETH.group, sex, age) %>%
-    select(-deaths) %>%
-    as_tibble()
+  delta_col <- enquo(delta_col)
+  change_pop(delta_col, direction = +1)
 }
 
-# inmigration population increase
-#
-add_inflow <- function(pop, dat_inflow) {
+rm_pop <- function(delta_col) {
 
-  if (all(is.na(dat_inflow))) return(pop)
-
-  dat_inflow %>%
-    select(-X1) %>%
-    merge(pop,
-          by = c("year", "age", "ETH.group", "sex")) %>%
-    mutate(pop = pop + inmigrants) %>%
-    arrange(year, ETH.group, sex, age) %>%
-    select(-inmigrants) %>%
-    as_tibble()
+  delta_col <- enquo(delta_col)
+  change_pop(delta_col, direction = -1)
 }
 
-# outmigration population decrease
-#
-add_outflow <- function(pop, dat_outflow) {
 
-  if (all(is.na(dat_outflow))) return(pop)
+change_pop <- function(delta_col, direction) {
 
-  dat_outflow %>%
-    select(-X1) %>%
-    merge(pop,
-          by = c("year", "age", "ETH.group", "sex")) %>%
-    mutate(pop = pop - outmigrants) %>%
-    arrange(year, ETH.group, sex, age) %>%
-    select(-outmigrants) %>%
-    as_tibble()
+  function(pop, dat) {
+
+    if (all(is.na(dat))) return(pop)
+
+    dat %>%
+      select(-X1) %>%
+      merge(pop,
+            by = c("year", "age", "ETH.group", "sex")) %>%
+      mutate(pop = pop + direction*(!!delta_col)) %>%
+      arrange(year, ETH.group, sex, age) %>%
+      select(-!!delta_col) %>%
+      as_tibble()
+  }
 }
 
-# increment everyone by one year
-#
-age_population <- function(pop) {
-
-  pop %>%
-    mutate(age = ifelse(age < 100, age + 1, age), # age 100 means >=100
-           year = year + 1) %>%
-    group_by(ETH.group, sex, year, age) %>%
-    summarise(pop = sum(pop)) %>%                 # sum all 100 ages
-    ungroup()
-}

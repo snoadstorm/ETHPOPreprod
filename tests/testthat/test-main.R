@@ -11,6 +11,7 @@ dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants.csv")
 dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births.csv")
 dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths.csv")
 
+
 # subset population data
 dat_pop <-
   dat_pop0 %>%
@@ -126,10 +127,9 @@ test_that("outflow", {
 })
 
 
-# total data set
 dat_pop <- dat_pop0
 
-test_that("age population", {
+test_that("age population total data", {
 
   res <-
     run_model(dat_pop)
