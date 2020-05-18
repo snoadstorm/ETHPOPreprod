@@ -38,6 +38,12 @@ res <-
 
 sim_pop <- bind_rows(res)
 
+
+
+########
+# plot #
+########
+
 sim_plot <-
   sim_pop %>%
   filter(sex == "M",
@@ -67,10 +73,13 @@ p2 <-
 gridExtra::grid.arrange(p1, p2)
 
 
+## differences
+
 diff_plot <-
   merge(dat_plot, sim_plot,
         by = c("age", "ETH.group", "sex", "year"), suffixes = c(".eth", ".sim")) %>%
-  mutate(diff_pop = pop.eth - pop.sim)
+  mutate(diff_pop = pop.eth - pop.sim,
+         scaled_diff = diff_pop/pop.eth)
 
 p3 <-
   ggplot(diff_plot, aes(x=age, y=diff_pop, colour = year)) +
@@ -79,3 +88,11 @@ p3 <-
 
 p3
 p3 + ylim(-2000, 1000)
+
+p4 <-
+  ggplot(diff_plot, aes(x=age, y=scaled_diff, colour = year)) +
+  ggtitle("(ETHPOP - estimated populations)/ETHPOP") +
+  geom_line()
+
+p4
+p4 + ylim(-2, 3)

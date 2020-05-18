@@ -86,6 +86,20 @@ test_that("deaths", {
     res$`2012`$pop[res$`2012`$age == 20] ==
       (res$`2011`$pop[res$`2011`$age == 19] - deaths2012))
 
+  deaths100 <-
+    dat_deaths %>%
+    filter(year == 2012,
+           sex == "M",
+           age == 100,
+           ETH.group == "BAN") %>%
+    select(deaths)
+
+  # one year younger minus direct death value
+  # and previous >= 100 year old
+  expect_true(
+    res$`2012`$pop[res$`2012`$age == 100] ==
+      (res$`2011`$pop[res$`2011`$age == 99] + res$`2011`$pop[res$`2011`$age == 100] - deaths100)
+    )
 })
 
 test_that("inflow", {
@@ -106,6 +120,19 @@ test_that("inflow", {
   expect_true(
     res$`2012`$pop[res$`2012`$age == 20] ==
       (res$`2011`$pop[res$`2011`$age == 19] + inflow2012))
+
+  inflow100 <-
+    dat_inflow %>%
+    filter(year == 2012,
+           sex == "M",
+           age == 100,
+           ETH.group == "BAN") %>%
+    select(inmigrants)
+
+  expect_true(
+    res$`2012`$pop[res$`2012`$age == 100] ==
+      (res$`2011`$pop[res$`2011`$age == 99] + res$`2011`$pop[res$`2011`$age == 100] - inflow100)
+  )
 })
 
 test_that("outflow", {
@@ -126,6 +153,19 @@ test_that("outflow", {
   expect_true(
     res$`2012`$pop[res$`2012`$age == 20] ==
       (res$`2011`$pop[res$`2011`$age == 19] - outflow2012))
+
+  outflow100 <-
+    dat_outflow %>%
+    filter(year == 2012,
+           sex == "M",
+           age == 100,
+           ETH.group == "BAN") %>%
+    select(outmigrants)
+
+  expect_true(
+    res$`2012`$pop[res$`2012`$age == 100] ==
+      (res$`2011`$pop[res$`2011`$age == 99] + res$`2011`$pop[res$`2011`$age == 100] - outflow100)
+  )
 })
 
 
