@@ -1,13 +1,14 @@
 
 # increment everyone by one year
 #
-age_population <- function(pop) {
+age_population <- function(pop,
+                           max_age = 100) {
 
   pop %>%
-    mutate(age = ifelse(age < 100, age + 1, age), # age 100 means >=100
+    mutate(age = ifelse(age < max_age, age + 1, age), # age 100 means >=100
            year = year + 1) %>%
     group_by(ETH.group, sex, year, age) %>%
-    summarise(pop = sum(pop)) %>%                 # sum all 100 ages
+    summarise(pop = sum(pop)) %>%             # sum all (previous and new) 100 ages
     ungroup()
 }
 

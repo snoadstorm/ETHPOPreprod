@@ -2,6 +2,7 @@
 #' run_model
 #'
 #' if data = NA then skipped in calculation (identity function)
+#' use dat_pop year range to simulate over
 #'
 #' @param dat_pop
 #' @param dat_births

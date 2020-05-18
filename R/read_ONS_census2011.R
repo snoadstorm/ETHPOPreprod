@@ -18,7 +18,7 @@ read_ONS_census2011 <- function(dir_name = here::here("raw data"),
   file_loc <- paste(dir_name, file_name, sep = "/")
 
   dat <-
-    readxl::read_xlsx(file_loc, range = "A10:AJC15", sheet = "All usual residents") %>%
+    readxl::read_xlsx(file_loc, range = "A10:AJC15", sheet = "All usual residents", col_names = FALSE) %>%
     t() %>%
     as_tibble()
 
@@ -26,9 +26,26 @@ read_ONS_census2011 <- function(dir_name = here::here("raw data"),
     dat %>%
     fill(V1, .direction = "down") %>%
     fill(V2, .direction = "down") %>%
-    `names<-`(c("agegrp", "cob", "ethgrp", "pop_EW", "pop_E")) %>%
+    fill(V3, .direction = "down") %>%
+    `names<-`(c("sex", "agegrp", "cob", "ethgrp", "pop_EW", "pop_E")) %>%
     na.omit() %>%
-    mutate(agegrp = gsub(agegrp, pattern = "Age", replacement = ""))
+    mutate(agegrp = gsub(agegrp, pattern = "Age", replacement = ""),
+           sex = ifelse(sex == "Males", "M", ifelse(sex == "Females", "F", "persons")))
+
+
+  ## mapping ethnic groups to ETHPOP
+  # BAN (Asian/Asian British: Bangladeshi),
+  # BLA (Black/African/Caribbean/Black British),
+  # BLC (Black/African/Caribbean/Black British),
+  # CHI (Asian/Asian British: Chinese),
+  # IND (Asian/Asian British: Indian),
+  # MIX (Mixed/multiple ethnic groups: White and Black Caribbean/ White and Black African/White and Asian/Other Mixed, Asian/Asian British: Other Asian, Other ethnic group: Arab, Other ethnic group: Any other ethnic group),
+  # OAS (Mixed/multiple ethnic groups: White and Black Caribbean/ White and Black African/White and Asian/Other Mixed, Asian/Asian British: Other Asian, Other ethnic group: Arab, Other ethnic group: Any other ethnic group),
+  # OBL (Other Black),
+  # OTH (Mixed/multiple ethnic groups: White and Black Caribbean/ White and Black African/White and Asian/Other Mixed, Asian/Asian British: Other Asian, Other ethnic group: Arab, Other ethnic group: Any other ethnic group),
+  # PAK (Asian/Asian British: Pakistani),
+  # WBI (White: English/Welsh/Scottish/Northern Irish/British/Irish/Gypsy or Irish Traveller/Other White),
+  # WHO (White: English/Welsh/Scottish/Northern Irish/British/Irish/Gypsy or Irish Traveller/Other White)
 
   if (!is.na(save_filename)) {
 
