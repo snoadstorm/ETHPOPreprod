@@ -65,3 +65,17 @@ p2 <-
   ylim(0,11000)
 
 gridExtra::grid.arrange(p1, p2)
+
+
+diff_plot <-
+  merge(dat_plot, sim_plot,
+        by = c("age", "ETH.group", "sex", "year"), suffixes = c(".eth", ".sim")) %>%
+  mutate(diff_pop = pop.eth - pop.sim)
+
+p3 <-
+  ggplot(diff_plot, aes(x=age, y=diff_pop, colour = year)) +
+  ggtitle("ETHPOP - estimated populations") +
+  geom_line()
+
+p3
+p3 + ylim(-2000, 1000)

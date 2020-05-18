@@ -3,13 +3,13 @@ library(testthat)
 library(purrr)
 library(readr)
 library(dplyr)
-library(ETHPOPreprod)
+library(demoSynthPop)
 
-dat_pop0 <- read_csv("~/R/cleanETHPOP/output_data/clean_pop.csv")
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants.csv")
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants.csv")
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births.csv")
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths.csv")
+dat_pop0 <- read_csv("C:/Users/Nathan/Documents/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv")
+dat_inflow <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv")
+dat_outflow <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv")
+dat_births <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_births_Leeds2.csv")
+dat_deaths <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv")
 
 
 # subset population data
@@ -25,6 +25,8 @@ test_that("age population", {
 
   res <-
     run_model(dat_pop)
+
+  expect_true(all(names(res) == 2011:2012))
 
   # everyone shift up one year with no new births
   expect_true(
@@ -49,7 +51,7 @@ test_that("age population", {
 test_that("births", {
 
   res <-
-    run_model(dat_pop,
+    run_model(dat_pop = dat_pop,
               dat_births = dat_births)
 
   births2012 <-
@@ -127,17 +129,28 @@ test_that("outflow", {
 })
 
 
+
+# -------------------------------------------------------------------------
+
+
 dat_pop <- dat_pop0
 
 test_that("age population total data", {
 
   res <-
-    run_model(dat_pop)
+    run_model(dat_pop = dat_pop)
 
   nsex <- length(unique(dat_pop$sex)) # 2
   neth <- length(unique(dat_pop$ETH.group)) # 12
 
+  # set of ethnic group names each year
+  ethgroups_each_year <- map(map(res, "ETH.group"), ~sort(unique(.x)))
+
+  expect_true(all(map_lgl(ethgroups_each_year,
+                          ~ all(.x == c("BAN", "BLA", "BLC", "CHI", "IND", "MIX", "OAS", "OBL", "OTH", "PAK", "WBI", "WHO")))))
+
   # everyone shift up one year with no new births
+  # and there's absorbing in >= 100 years old
   # for 50 years and each subgroup
   expect_true(
     nrow(res$`2011`) == nrow(res$`2061`) + (nsex*neth*50))
@@ -177,7 +190,34 @@ test_that("age population total data", {
 })
 
 
+test_that("births total data", {
 
+  res <-
+    run_model(dat_pop = dat_pop,
+              dat_births = dat_births)
+
+  # set of ethnic group names each year
+  ethgroups_each_year <- map(map(res, "ETH.group"), ~sort(unique(.x)))
+
+  expect_true(all(map_lgl(ethgroups_each_year,
+                          ~ all(.x == c("BAN", "BLA", "BLC", "CHI", "IND", "MIX", "OAS", "OBL", "OTH", "PAK", "WBI", "WHO")))))
+
+  # all births for sex and ethnic groups in 2012
+  births2012 <-
+    dat_births %>%
+    filter(year == 2012,
+           sex != "person") %>%
+    arrange(sex, ETH.group) %>%
+    select(births) %>%
+    unlist()
+
+  # direct value
+  expect_equivalent(
+    res$`2012`[res$`2012`$age == 0, ] %>%
+      arrange(sex, ETH.group) %>%
+      select(pop) %>%
+      unlist(), births2012)
+})
 
 
 
