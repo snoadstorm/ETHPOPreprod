@@ -68,3 +68,6 @@ The algorithm in `run_model()` takes the following steps:
 ``` r
 library(demoSynthPop)
 ```
+
+The full output from running [main.R](scripts/main.R) is
+[here](https://ethpop-and-ets.github.io/demoSynthPop/main.html).
