@@ -15,10 +15,38 @@ age_population <- function(pop,
 
 # newborn population increase
 #
-add_births <- function(pop, dat_births) {
+add_births <- function(pop,
+                       dat_births,
+                       is_prop = FALSE) {
 
   if (any(pop$age == 0)) stop("Shouldn't be any 0 aged in population data")
   if (all(is.na(dat_births))) return(pop)
+
+  # counts for eligible population
+  if (is_prop) {
+
+    # proportion male to female births
+    pm <- 0.5
+    pf <- 1 - pm
+
+    dat_births <-
+      pop %>%
+      filter(sex == "F",          # childbearing aged women only
+             age > 15,
+             age < 45) %>%
+      group_by("ETH.group") %>%
+      summarise(pop = sum(pop)) %>%
+      ungroup() %>%
+      merge(dat_births,
+            by = c("year", "ETH.group"),
+            all.x = TRUE) %>%
+      mutate(births_m = births_per_capita*pop*pm,
+             births_f = births_per_capita*pop*pf) %>%
+      reshape2::melt(id.vars = C("year", "ETH.group", "pop"),
+                     measure.vars = c("births_m", "births_f"),
+                     variable.name = "sex",
+                     value.name = "births")
+  }
 
   dat_births %>%
     select(-X1) %>%
@@ -32,20 +60,24 @@ add_births <- function(pop, dat_births) {
 }
 
 
-add_pop <- function(delta_col) {
+add_pop <- function(delta_col,
+                    is_prop = FALSE) {
 
   delta_col <- enquo(delta_col)
-  change_pop(delta_col, direction = +1)
+  change_pop(delta_col, is_prop, direction = +1)
 }
 
-rm_pop <- function(delta_col) {
+rm_pop <- function(delta_col,
+                   is_prop = FALSE) {
 
   delta_col <- enquo(delta_col)
-  change_pop(delta_col, direction = -1)
+  change_pop(delta_col, is_prop, direction = -1)
 }
 
 
-change_pop <- function(delta_col, direction) {
+change_pop <- function(delta_col,
+                       is_prop,
+                       direction) {
 
   function(pop, dat) {
 
@@ -55,7 +87,9 @@ change_pop <- function(delta_col, direction) {
       select(-X1) %>%
       merge(pop,
             by = c("year", "age", "ETH.group", "sex")) %>%
-      mutate(pop = pop + direction*(!!delta_col)) %>%
+      mutate(pop = ifelse(is_prop,
+                          yes = pop + direction*pop*(!!delta_col),
+                          no  = pop + direction*(!!delta_col))) %>%
       arrange(year, ETH.group, sex, age) %>%
       select(-!!delta_col) %>%
       as_tibble()

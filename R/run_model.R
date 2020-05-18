@@ -10,7 +10,9 @@
 #' @param dat_inflow
 #' @param dat_outflow
 #' @param year0
+#' @param is_prop Per capita or counts data; TRUE/FALSE
 #'
+#' @import purrr, dplyr
 #' @return
 #' @export
 #'
@@ -19,11 +21,13 @@ run_model <- function(dat_pop,
                       dat_deaths = NA,
                       dat_inflow = NA,
                       dat_outflow = NA,
-                      year0 = min(dat_pop$year)) {
+                      year0 = min(dat_pop$year),
+                      is_prop = FALSE) {
 
-  add_deaths <- rm_pop(deaths)
-  add_inflow <- add_pop(inmigrants)
-  add_outflow <- rm_pop(outmigrants)
+  add_deaths <- rm_pop(deaths, is_prop)
+  add_inflow <- add_pop(inmigrants, is_prop)
+  add_outflow <- rm_pop(outmigrants, is_prop)
+  add_newborn <- purrr::partial(add_births, is_prop = is_prop)
 
   # sequence of years to estimate for
   years <- sort(unique(dat_pop$year))
@@ -42,7 +46,7 @@ run_model <- function(dat_pop,
     pop <-
       pop %>%
       age_population() %>%
-      add_births(dat_births) %>%
+      add_newborn(dat_births) %>%
       add_deaths(dat_deaths) %>%
       add_inflow(dat_inflow) %>%
       add_outflow(dat_outflow)
