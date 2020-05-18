@@ -12,7 +12,7 @@ library(readxl)
 library(readr)
 library(tibble)
 library(ggplot2)
-library(ETHPOPreprod)
+library(demoSynthPop)
 
 
 # model UK-born/non UK-born
