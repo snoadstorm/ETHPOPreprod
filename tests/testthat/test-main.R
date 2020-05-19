@@ -26,7 +26,11 @@ test_that("age population", {
   res <-
     run_model(dat_pop)
 
+  expect_type(res, type = "list")
+
   expect_true(all(names(res) == 2011:2012))
+
+  expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
 
   # everyone shift up one year with no new births
   expect_true(
@@ -54,6 +58,12 @@ test_that("births", {
     run_model(dat_pop = dat_pop,
               dat_births = dat_births)
 
+  expect_type(res, type = "list")
+
+  expect_true(all(names(res) == 2011:2012))
+
+  expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
+
   births2012 <-
     dat_births %>%
     filter(year == 2012,
@@ -73,6 +83,12 @@ test_that("deaths", {
     run_model(dat_pop,
               dat_deaths = dat_deaths)
 
+  expect_type(res, type = "list")
+
+  expect_true(all(names(res) == 2011:2012))
+
+  expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
+
   deaths2012 <-
     dat_deaths %>%
     filter(year == 2012,
@@ -80,6 +96,16 @@ test_that("deaths", {
            age == 20,
            ETH.group == "BAN") %>%
     select(deaths)
+
+
+  # add deaths only
+  # define function
+  add_deaths <- rm_pop(deaths, is_prop = FALSE)
+  xx <- dat_pop[dat_pop$year == 2011, ] %>% add_deaths(dat_deaths)
+
+  expect_equal(xx$pop[xx$age == 0], 4842, tolerance = 1)
+  expect_equal(xx$pop[xx$age == 9], 4804, tolerance = 1 )
+
 
   # one year younger minus direct death value
   expect_true(
@@ -107,6 +133,12 @@ test_that("inflow", {
   res <-
     run_model(dat_pop,
               dat_inflow = dat_inflow)
+
+  expect_type(res, type = "list")
+
+  expect_true(all(names(res) == 2011:2012))
+
+  expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
 
   inflow2012 <-
     dat_inflow %>%
@@ -140,6 +172,12 @@ test_that("outflow", {
   res <-
     run_model(dat_pop,
               dat_outflow = dat_outflow)
+
+  expect_type(res, type = "list")
+
+  expect_true(all(names(res) == 2011:2012))
+
+  expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
 
   outflow2012 <-
     dat_outflow %>%

@@ -25,11 +25,14 @@ dat_ons <- read_ONS_census2011()
 # load ETHPOP cleaned data
 dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv")
 
-##TODO: have we got this data?
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv")
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_per_capita_Leeds2.csv")
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_per_capita_Leeds2.csv")
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_per_capita_Leeds2.csv")
+##TODO: have we got missing data for Leeds2?
+## does it make sense to have per-capita inmigration?...
+
+dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv", col_types = list(sex = col_character()))
+
+dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/outmigrants_per_capita_Leeds2.csv", col_types = list(sex = col_character()))
+dat_births <- read_csv("~/R/cleanETHPOP/output_data/births_per_capita_Leeds1.csv", col_types = list(sex = col_character()))
+dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/deaths_per_capita_Leeds1.csv", col_types = list(sex = col_character()))
 
 
 res <-
@@ -37,7 +40,8 @@ res <-
             dat_births,
             dat_deaths,
             dat_inflow,
-            dat_outflow)
+            dat_outflow,
+            is_prop = TRUE)
 
 sim_pop <- bind_rows(res)
 
