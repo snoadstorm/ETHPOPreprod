@@ -93,11 +93,40 @@ test_that("births", {
     filter(year == 2012,
            sex == "F",
            ETH.group == "BAN") %>%
-    select(births)
+    select(births_per_capita_15_45)
+
+  pop1545 <-
+    dat_popF %>%
+    filter(age >= 14,
+           age <= 44,
+           year == 2011) %>%
+    summarise(sum(pop))
 
   # direct value
   expect_true(
-    res$`2012`$pop[res$`2012`$age == 0] == births2012)
+    res$`2012`$pop[res$`2012`$age == 0] == births2012*pop1545)
+
+
+  dat_births0 <- dat_births %>% mutate(births_per_capita_15_45 = 0)
+  dat_births1 <- dat_births %>% mutate(births_per_capita_15_45 = 1)
+
+  # no-one is born
+  res0 <-
+    run_model(dat_pop = dat_popF,
+              dat_births = dat_births0,
+              is_prop = is_prop)
+
+  expect_equal(res0$`2012`$pop[res0$`2012`$age == 0], 0)
+
+  # 100% rate i.e. same birth size as eligible population
+  res1 <-
+    run_model(dat_pop = dat_popF,
+              dat_births = dat_births1,
+              is_prop = is_prop)
+
+  unlist(pop1545) %>%
+    expect_equivalent(res1$`2012`$pop[res1$`2012`$age == 0])
+
 
 })
 

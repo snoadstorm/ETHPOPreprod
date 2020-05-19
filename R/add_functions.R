@@ -36,7 +36,7 @@ add_births <- function(pop,
       merge(dat_births,                       # duplicate pop for each sex
             by = c("year", "ETH.group"),
             all.x = TRUE) %>%
-      mutate(births2 = births_per_capita_15_45*pop) %>%
+      mutate(births = births_per_capita_15_45*pop) %>%
       select(year, sex, ETH.group, births)
   }
 
