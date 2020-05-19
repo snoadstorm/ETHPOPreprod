@@ -52,8 +52,10 @@ to the ETHPOP tables.
 
 There are two ways in which we can do this:
 
-  - absolute population counts
-  - Proportions
+  - Absolute population counts: analysis
+    [here](https://ethpop-and-ets.github.io/demoSynthPop/main.html).
+  - Per-capita proportions: analysis
+    [here](https://ethpop-and-ets.github.io/demoSynthPop/main_per_capita.html).
 
 The algorithm in `run_model()` takes the following steps:
 
@@ -68,6 +70,3 @@ The algorithm in `run_model()` takes the following steps:
 ``` r
 library(demoSynthPop)
 ```
-
-The full output from running [main.R](scripts/main.R) is
-[here](https://ethpop-and-ets.github.io/demoSynthPop/main.html).

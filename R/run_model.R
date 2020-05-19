@@ -26,7 +26,7 @@ run_model <- function(dat_pop,
 
   # define functions
   add_deaths <- rm_pop(deaths, is_prop)
-  add_inflow <- add_pop(inmigrants, is_prop)
+  add_inflow <- add_pop(inmigrants)#, is_prop) ##TODO: not per capita
   add_outflow <- rm_pop(outmigrants, is_prop)
   add_newborn <- purrr::partial(add_births, is_prop = is_prop)
 

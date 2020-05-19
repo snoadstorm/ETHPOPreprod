@@ -7,11 +7,12 @@ library(demoSynthPop)
 
 # load data
 dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv")
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/births_per_capita_Leeds1.csv", col_types = list(sex = col_character()))
+dat_births <- read_csv("~/R/cleanETHPOP/output_data/births_per_capita_Leeds1.csv",
+                       col_types = list(sex = col_character()))
 
 pop <- filter(dat_pop, year == 2011) %>% select(-X1)
 
-# recreate the population numbers that were originally use to
+# recreate the population numbers that were originally used to
 # get the proportions in the first place
 #
 test_that("counts from per capita", {

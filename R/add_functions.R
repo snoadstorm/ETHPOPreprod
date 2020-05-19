@@ -51,7 +51,7 @@ add_births <- function(pop,
     arrange(year, ETH.group, sex, age)   # sort ages in ascending order
 }
 
-
+# increase
 add_pop <- function(delta_col,
                     is_prop = FALSE) {
 
@@ -59,6 +59,7 @@ add_pop <- function(delta_col,
   change_pop(delta_col, is_prop, direction = +1)
 }
 
+# decrease
 rm_pop <- function(delta_col,
                    is_prop = FALSE) {
 
@@ -66,7 +67,7 @@ rm_pop <- function(delta_col,
   change_pop(delta_col, is_prop, direction = -1)
 }
 
-
+# generic
 change_pop <- function(delta_col,
                        is_prop,
                        direction) {
