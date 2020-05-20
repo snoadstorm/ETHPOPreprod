@@ -22,7 +22,11 @@ library(demoSynthPop)
 dat_ons <- read_ONS_census2011()
 
 # load ETHPOP cleaned data
-dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv", col_types = list(sex = col_character()))
+dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
+                    col_types = list(sex = col_character(),
+                                     age = col_double(),
+                                     year = col_double()))
+
 dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv", col_types = list(sex = col_character()))
 dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv", col_types = list(sex = col_character()))
 dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_Leeds2.csv", col_types = list(sex = col_character()))
