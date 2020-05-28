@@ -14,9 +14,9 @@ base_year <- 2011
 
 # labour force survey
 
-# load and clean
+# load and format
 lfs <-
-  read_rds("C:/Users/Nathan/Documents/R/tbinenglanddataclean/output_data/formatted_LFS_2011_2016.rds") %>%
+  read_rds("C:/Users/Nathan/Documents/R/tbinenglanddataclean/output_data/formatted_LFS_2010_2016.rds") %>%
   filter(
     Year == base_year,
     Country == "England") %>%                       # single year cohort
@@ -24,22 +24,24 @@ lfs <-
   group_by(Age, CoB, ethgrp, Sex) %>%
   summarise(pop = sum(Weight, na.rm = TRUE)) %>%    # aggregate population counts
   ungroup() #%>%
-  # na.omit()
+# na.omit()
+
 
 # harmonise sex, age and ethgrp
 # in order to join with ETHPOP
 lfs <-
   lfs %>%
   mutate(Sex = ifelse(Sex == "Female", "F", "M"),
-         ethgrp = ifelse(ethgrp == "Asian", "CHI+OAS", ethgrp),
-         ethgrp = ifelse(ethgrp == "Bangladeshi", "BAN", ethgrp),
-         ethgrp = ifelse(ethgrp == "Indian", "IND", ethgrp),
-         ethgrp = ifelse(ethgrp == "Pakistani", "PAK", ethgrp),
-         ethgrp = ifelse(ethgrp == "White", "WBI+WHO", ethgrp),
-         ethgrp = ifelse(ethgrp == "Mixed", "MIX", ethgrp),
-         ethgrp = ifelse(ethgrp == "Other", "OTH", ethgrp),
-         ethgrp = ifelse(ethgrp == "Black/Black British",
-                         "BLA+BAN+BLC+OBL", ethgrp),
+         ethgrp = case_when(
+           ethgrp == "Asian" ~ "CHI+OAS",
+           ethgrp == "Bangladeshi" ~ "BAN",
+           ethgrp == "Indian" ~ "IND",
+           ethgrp == "Pakistani" ~ "PAK",
+           ethgrp == "White" ~ "WBI+WHO",
+           ethgrp == "Mixed" ~ "MIX",
+           ethgrp == "Other" ~ "OTH",
+           ethgrp == "Black/Black British" ~ "BLA+BAN+BLC+OBL",
+           TRUE ~ NA_character_),
          Age = as.character(Age),                   # otherwise factor conversion: age 0 => 1
          Age = ifelse(Age == "90+", "90", Age),
          Age = as.numeric(Age)) %>%
@@ -47,6 +49,16 @@ lfs <-
          age = Age,
          ETH.group = ethgrp)
 
+all_groups <-
+  expand.grid(
+    CoB = c("UK born", "Non-UK born"),
+    age = as.factor(0:90),
+              ETH.group = unique(lfs$ETH.group)[!is.na(unique(lfs$ETH.group))],
+              sex = c("M", "F"))
+
+lfs <-
+  lfs %>%
+  merge(all_groups, all.y = TRUE)
 
 # without UK born to compare directly
 # with ETHPOP population
@@ -55,7 +67,7 @@ dat_lfs_total <-
   group_by(sex, age, ETH.group) %>%
   summarise(pop = sum(pop, na.rm = TRUE))
 
-# proportion UK born
+# include proportion UK born
 # in each age, ethnic group, sex
 dat_lfs <-
   lfs %>%
@@ -67,7 +79,44 @@ dat_lfs <-
   arrange(ETH.group, sex, age)
 
 
-# ETHPOP
+# impute missing values with regression -----------------------------------
+
+regn_dat <-
+  dat_lfs %>%
+  mutate("sum-pop" = sum - pop,
+         age = as.factor(age)) %>%
+  filter(CoB == "UK born")
+
+res <- cbind(regn_dat$pop,
+             regn_dat$`sum-pop`)
+
+fit <- glm(res ~ ETH.group + age + sex,
+           data = regn_dat,
+           family = binomial("logit"))
+
+all_agesexeth <-
+  expand.grid(age = as.factor(0:90),
+              ETH.group = unique(lfs$ETH.group)[!is.na(unique(lfs$ETH.group))],
+              sex = c("M", "F"))
+
+pred <- predict(fit, newdata = all_agesexeth, type = "response")
+
+all_agesexeth$`UK born` <- pred
+all_agesexeth$`Non-UK born` <- 1 - pred
+
+pred_lfs <-
+  reshape2::melt(all_agesexeth, measure.vars = c("UK born", "Non-UK born"),
+                 variable.name = "CoB",
+                 value.name = "pred")
+
+
+dat <-
+  pred_lfs %>%
+  merge(dat_lfs, all.x = TRUE) %>%
+  merge(est_pop = sum*pred)
+
+
+# ETHPOP ------------------------------------------------------------------
 
 # load and clean
 dat_pop <-
@@ -88,16 +137,25 @@ dat_pop <-
                             "CHI+OAS", ETH.group)) %>%
   mutate(age = ifelse(age %in% 90:100, 90, age)) %>%                   # make 90 max single age
   group_by(sex, age, ETH.group) %>%                                    # to match LFS
-  summarise(pop = sum(pop))
+  summarise(pop = sum(pop)) %>%
+  mutate(pop = round(pop, 0))
 
 
 # join ETHPOP and LFS
 
-## check populations
+# check populations
+# aggregated
+# dat <- merge(dat_lfs_total, dat_pop,
+#              by = c("sex", "age", "ETH.group"),
+#              suffixes = c("_lfs", "_eth"))
 
-dat <- merge(dat_lfs_total, dat_pop,
-             by = c("sex", "age", "ETH.group"))
 
+dat <-
+  merge(dat_lfs, dat_pop,
+        by = c("sex", "age", "ETH.group"),
+        suffixes = c("_lfs", "_eth")) %>%
+  mutate(pop = round(pop_eth*p_CoB, 0),
+         year = base_year) %>%
+  select(year, sex, age, ETH.group, CoB, pop)
 
-dat <- merge(dat_lfs, dat_pop,
-             by = c("sex", "age", "ETH.group"))
+write.csv(dat, file = "output_data/joined_ETHPOP_LFS_2011.csv")
