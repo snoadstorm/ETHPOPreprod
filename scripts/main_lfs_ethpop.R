@@ -43,10 +43,11 @@ dat_inflow <-
          ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
                             "WBI+WHO", ETH.group),
          ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group)) %>%
-  mutate(age = ifelse(age %in% 90:100, 90, age)) %>%             # make 90 max single age
+                            "CHI+OAS", ETH.group),
+         age = ifelse(age %in% 90:100, 90, age)) %>%             # make 90 max single age
   group_by(sex, age, ETH.group, year) %>%
-  summarise(inmigrants = sum(inmigrants))
+  summarise(inmigrants = sum(inmigrants)) %>%
+  mutate(CoB = "Non-UK born")
 
 dat_outflow <-
   dat_outflow %>%
@@ -55,10 +56,18 @@ dat_outflow <-
          ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
                             "WBI+WHO", ETH.group),
          ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group)) %>%
-  mutate(age = ifelse(age %in% 90:100, 90, age)) %>%
+                            "CHI+OAS", ETH.group),
+         age = ifelse(age %in% 90:100, 90, age)) %>%
   group_by(sex, age, ETH.group, year) %>%
-  summarise(outmigrants = sum(outmigrants))
+  summarise(outmigrants = sum(outmigrants)) %>%
+  ungroup() %>%
+  mutate(`UK born` = outmigrants/2,                   # assume 50/50 between UK born/Non-UK born
+         `Non-UK born` = outmigrants/2) %>%
+  reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
+                 id.vars = c("sex", "age", "ETH.group", "year"),
+                 variable.name = "CoB",
+                 value.name = "outmigrants") %>%
+  as_tibble()
 
 dat_births <-
   dat_births %>%
@@ -69,7 +78,8 @@ dat_births <-
          ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
                             "CHI+OAS", ETH.group)) %>%
   group_by(sex, ETH.group, year) %>%
-  summarise(births = sum(births))
+  summarise(births = sum(births)) %>%
+  mutate(CoB = "UK born")
 
 dat_deaths <-
   dat_deaths %>%
@@ -78,10 +88,18 @@ dat_deaths <-
          ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
                             "WBI+WHO", ETH.group),
          ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group)) %>%
-  mutate(age = ifelse(age %in% 90:100, 90, age)) %>%
+                            "CHI+OAS", ETH.group),
+         age = ifelse(age %in% 90:100, 90, age)) %>%
   group_by(sex, age, ETH.group, year) %>%
-  summarise(deaths = sum(deaths))
+  summarise(deaths = sum(deaths)) %>%
+  ungroup() %>%
+  mutate(`UK born` = deaths/2,                   # assume 50/50 between UK born/Non-UK born
+         `Non-UK born` = deaths/2) %>%
+  reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
+                 id.vars = c("sex", "age", "ETH.group", "year"),
+                 variable.name = "CoB",
+                 value.name = "deaths") %>%
+  as_tibble()
 
 
 # -------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 
 #' run_model
 #'
-#' if data = NA then skipped in calculation (identity function)
-#' use dat_pop year range to simulate over
+#' if any of the `data = NA` then skipped in
+#' calculation (identity function).
 #'
 #' @param dat_pop
 #' @param dat_births
@@ -11,7 +11,7 @@
 #' @param dat_outflow
 #' @param year0
 #' @param n_years including initial year
-#' @param max_age
+#' @param max_age if missing use years in `dat_pop`
 #' @param is_prop Per capita or counts data; TRUE/FALSE
 #'
 #' @import purrr, dplyr

@@ -5,11 +5,11 @@ age_population <- function(pop,
                            max_age = 100) {
 
   pop %>%
-    mutate(age = ifelse(age < max_age, age + 1, age), # age 100 means >=100
+    mutate(age = ifelse(age < max_age, age + 1, age), # e.g. age 100 means >=100
            year = year + 1) %>%
-    # group_by(ETH.group, sex, year, age) %>%
-    group_by(CoB, ETH.group, sex, year, age) %>%
-    summarise(pop = sum(pop)) %>%             # sum all (previous and new) 100 ages
+    group_by_at(vars(-pop)) %>%
+    # group_by(CoB, ETH.group, sex, year, age) %>%
+    summarise(pop = sum(pop)) %>%             # sum all (previous and new) max ages
     ungroup()
 }
 
@@ -44,8 +44,7 @@ add_births <- function(pop,
 
   dat_births %>%
     select_at(vars(-contains("X1"))) %>% # remove column
-    mutate(age = 0,                      # everyone is: age 0
-           CoB = "UK born") %>%          #              UK born
+    mutate(age = 0) %>%                  # everyone is age 0
     filter(year == pop$year[1],
            ETH.group %in% unique(pop$ETH.group),
            sex %in% unique(pop$sex)) %>%
@@ -79,16 +78,22 @@ change_pop <- function(delta_col,
 
     if (all(is.na(dat))) return(pop)
 
+    join_cols <- names(pop)[names(pop) != "pop"]
+
     dat %>%
       select_at(vars(-contains("X1"))) %>%         # remove column
       merge(pop,
-            by = c("year", "age", "ETH.group", "sex")) %>%
+            by = join_cols,
+            all = TRUE) %>%
       mutate(is_prop = is_prop,
+             adj = ifelse(is.na(!!delta_col),
+                          yes = 0,
+                          no = !!delta_col),
              pop = ifelse(is_prop,
-                          yes = pop + direction*pop*(!!delta_col),
-                          no  = pop + direction*(!!delta_col))) %>%
+                          yes = pop + direction*pop*adj,
+                          no  = pop + direction*adj)) %>%
       arrange(year, ETH.group, sex, age) %>%
-      select(-!!delta_col, -is_prop) %>%
+      select(-!!delta_col, -is_prop, -adj) %>%
       as_tibble()
   }
 }
