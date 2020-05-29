@@ -21,11 +21,21 @@ library(demoSynthPop)
 
 
 # load joined LFS and ETHPOP formatted data
-# original data:...
-dat_pop <- read_csv("~/R/demoSynthPop/output_data/clean_census2011.csv",
-                    col_types = list(sex = col_character(),
-                                     age = col_double(),
-                                     year = col_double()))
+# original data from where?
+dat_pop <-
+  read_csv("~/R/demoSynthPop/output_data/clean_census2011.csv",
+           col_types = list(sex = col_character(),
+                            year = col_double())) %>%
+  rename(ETH.group = ethgrp,                                ##TODO: move to cleaning function...
+         pop = population) %>%
+  mutate(CoB = ifelse(CoB == "UK-born", "UK born", "Non-UK born"),
+         age = ifelse(age %in% c("85-89", "90-94", "95-99", "100"), "85", age),
+         age = as.numeric(age)) %>%
+  group_by(CoB, ETH.group, age, sex, year) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup()
+
+
 
 # explicitly define sex so not coerced to logical
 dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
@@ -42,26 +52,36 @@ dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
 
 dat_inflow <-
   dat_inflow %>%
-  mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
-                            "BLA+BLC+OBL", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
-                            "WBI+WHO", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group),
-         age = ifelse(age %in% 90:100, 90, age)) %>%             # make 90 max single age
+  mutate(ETH.group =
+           case_when(
+             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
+             ETH.group %in% c("WBI","WHO") ~ "White",
+             ETH.group == "BAN" ~ "Bangladeshi",
+             ETH.group == "BLA" ~ "Black-African",
+             ETH.group == "BLC" ~ "Black-Caribbean",
+             ETH.group == "OBL" ~ "Black-Other",
+             ETH.group == "CHI" ~ "Chinese",
+             ETH.group == "IND" ~ "Indian",
+             ETH.group == "PAK" ~ "Pakistan"),
+         age = ifelse(age %in% 85:100, 85, age)) %>%             # make 90 max single age
   group_by(sex, age, ETH.group, year) %>%
   summarise(inmigrants = sum(inmigrants)) %>%
   mutate(CoB = "Non-UK born")
 
 dat_outflow <-
   dat_outflow %>%
-  mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
-                            "BLA+BLC+OBL", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
-                            "WBI+WHO", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group),
-         age = ifelse(age %in% 90:100, 90, age)) %>%
+  mutate(ETH.group =
+           case_when(
+             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
+             ETH.group %in% c("WBI","WHO") ~ "White",
+             ETH.group == "BAN" ~ "Bangladeshi",
+             ETH.group == "BLA" ~ "Black-African",
+             ETH.group == "BLC" ~ "Black-Caribbean",
+             ETH.group == "OBL" ~ "Black-Other",
+             ETH.group == "CHI" ~ "Chinese",
+             ETH.group == "IND" ~ "Indian",
+             ETH.group == "PAK" ~ "Pakistan"),
+         age = ifelse(age %in% 85:100, 85, age)) %>%
   group_by(sex, age, ETH.group, year) %>%
   summarise(outmigrants = sum(outmigrants)) %>%
   ungroup() %>%
@@ -75,25 +95,35 @@ dat_outflow <-
 
 dat_births <-
   dat_births %>%
-  mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
-                            "BLA+BLC+OBL", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
-                            "WBI+WHO", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group)) %>%
+  mutate(ETH.group =
+           case_when(
+             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
+             ETH.group %in% c("WBI","WHO") ~ "White",
+             ETH.group == "BAN" ~ "Bangladeshi",
+             ETH.group == "BLA" ~ "Black-African",
+             ETH.group == "BLC" ~ "Black-Caribbean",
+             ETH.group == "OBL" ~ "Black-Other",
+             ETH.group == "CHI" ~ "Chinese",
+             ETH.group == "IND" ~ "Indian",
+             ETH.group == "PAK" ~ "Pakistan")) %>%
   group_by(sex, ETH.group, year) %>%
   summarise(births = sum(births)) %>%
   mutate(CoB = "UK born")
 
 dat_deaths <-
   dat_deaths %>%
-  mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
-                            "BLA+BLC+OBL", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
-                            "WBI+WHO", ETH.group),
-         ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
-                            "CHI+OAS", ETH.group),
-         age = ifelse(age %in% 90:100, 90, age)) %>%
+  mutate(ETH.group =
+           case_when(
+             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
+             ETH.group %in% c("WBI","WHO") ~ "White",
+             ETH.group == "BAN" ~ "Bangladeshi",
+             ETH.group == "BLA" ~ "Black-African",
+             ETH.group == "BLC" ~ "Black-Caribbean",
+             ETH.group == "OBL" ~ "Black-Other",
+             ETH.group == "CHI" ~ "Chinese",
+             ETH.group == "IND" ~ "Indian",
+             ETH.group == "PAK" ~ "Pakistan"),
+         age = ifelse(age %in% 85:100, 85, age)) %>%
   group_by(sex, age, ETH.group, year) %>%
   summarise(deaths = sum(deaths)) %>%
   ungroup() %>%
@@ -114,8 +144,8 @@ res <-
             dat_deaths,
             dat_inflow,
             dat_outflow,
-            n_years = 3,
-            max_age = 90)
+            n_years = 20,
+            max_age = 85)
 
 sim_pop <- bind_rows(res)
 
@@ -125,55 +155,17 @@ sim_pop <- bind_rows(res)
 # plot #
 ########
 
+
 sim_plot <-
   sim_pop %>%
   filter(sex == "M",
-         ETH.group == "BAN",
-         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
-  mutate(year = as.factor(year))
-# mutate(eth_sex_year = interaction(ETH.group, sex, year))
-
-dat_plot <-
-  dat_pop %>%
-  filter(sex == "M",
-         ETH.group == "BAN",
-         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
+         ETH.group == "Bangladeshi",
+         year %in% c(2011, 2020, 2030)
+  ) %>%
   mutate(year = as.factor(year))
 
 
-p1 <-
-  ggplot(sim_plot, aes(x=age, y=pop, colour = year)) +
+ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(CoB, year))) +
   geom_line() +
-  ylim(0,11000)
+  ylim(0, 11000) + xlim(0,90)
 
-p2 <-
-  ggplot(dat_plot, aes(x=age, y=pop, colour = year)) +
-  geom_line() +
-  ylim(0,11000)
-
-gridExtra::grid.arrange(p1, p2)
-
-
-## differences
-
-diff_plot <-
-  merge(dat_plot, sim_plot,
-        by = c("age", "ETH.group", "sex", "year"), suffixes = c(".eth", ".sim")) %>%
-  mutate(diff_pop = pop.eth - pop.sim,
-         scaled_diff = diff_pop/pop.eth)
-
-p3 <-
-  ggplot(diff_plot, aes(x=age, y=diff_pop, colour = year)) +
-  ggtitle("ETHPOP - estimated populations") +
-  geom_line()
-
-p3
-p3 + ylim(-2000, 1000)
-
-p4 <-
-  ggplot(diff_plot, aes(x=age, y=scaled_diff, colour = year)) +
-  ggtitle("(ETHPOP - estimated populations)/ETHPOP") +
-  geom_line()
-
-p4
-p4 + ylim(-2, 3)
