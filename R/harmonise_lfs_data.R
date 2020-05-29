@@ -59,7 +59,7 @@ harmonise_lfs_births <- function(dat_births) {
     mutate(CoB = "UK born")
 }
 
-#
+# assume 50/50 UK born/Non-UK born
 harmonise_lfs_deaths <- function(dat_deaths) {
 
   dat_deaths %>%
