@@ -1,7 +1,7 @@
 
 #
 # create synthetic cohort
-# using joined LFS and ETHPOP in/out flow data
+# using joined ONS census and ETHPOP in/out flow data
 # including UK born/Non-UK born
 #
 # N Green
@@ -16,8 +16,13 @@ library(ggplot2)
 library(demoSynthPop)
 
 
+# # load grouped ONS starting population
+# dat_ons <- read_ONS_census2011()
+
+
 # load joined LFS and ETHPOP formatted data
-dat_pop <- read_csv("~/R/demoSynthPop/output_data/joined_ETHPOP_LFS_2011.csv",
+# original data:...
+dat_pop <- read_csv("~/R/demoSynthPop/output_data/clean_census2011.csv",
                     col_types = list(sex = col_character(),
                                      age = col_double(),
                                      year = col_double()))
@@ -34,9 +39,6 @@ dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
 
 
 # harmonise ETHPOP with initial population -------------------------------
-
-# assume 50/50 between UK born/Non-UK born
-p_UKborn_outflow <- 0
 
 dat_inflow <-
   dat_inflow %>%
@@ -63,8 +65,8 @@ dat_outflow <-
   group_by(sex, age, ETH.group, year) %>%
   summarise(outmigrants = sum(outmigrants)) %>%
   ungroup() %>%
-  mutate(`UK born` = outmigrants*p_UKborn_outflow,
-         `Non-UK born` = outmigrants*(1 - p_UKborn_outflow)) %>%
+  mutate(`UK born` = outmigrants/2,                   # assume 50/50 between UK born/Non-UK born
+         `Non-UK born` = outmigrants/2) %>%
   reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
                  id.vars = c("sex", "age", "ETH.group", "year"),
                  variable.name = "CoB",
@@ -95,8 +97,8 @@ dat_deaths <-
   group_by(sex, age, ETH.group, year) %>%
   summarise(deaths = sum(deaths)) %>%
   ungroup() %>%
-  mutate(`UK born` = deaths*0.5,                   # assume 50/50 between UK born/Non-UK born
-         `Non-UK born` = deaths*0.5) %>%
+  mutate(`UK born` = deaths/2,                   # assume 50/50 between UK born/Non-UK born
+         `Non-UK born` = deaths/2) %>%
   reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
                  id.vars = c("sex", "age", "ETH.group", "year"),
                  variable.name = "CoB",
@@ -112,7 +114,7 @@ res <-
             dat_deaths,
             dat_inflow,
             dat_outflow,
-            n_years = 20,
+            n_years = 3,
             max_age = 90)
 
 sim_pop <- bind_rows(res)
@@ -127,11 +129,51 @@ sim_plot <-
   sim_pop %>%
   filter(sex == "M",
          ETH.group == "BAN",
-         year %in% c(2011, 2020, 2030)
-         ) %>%
+         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
+  mutate(year = as.factor(year))
+# mutate(eth_sex_year = interaction(ETH.group, sex, year))
+
+dat_plot <-
+  dat_pop %>%
+  filter(sex == "M",
+         ETH.group == "BAN",
+         year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
   mutate(year = as.factor(year))
 
 
-ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(CoB, year))) +
+p1 <-
+  ggplot(sim_plot, aes(x=age, y=pop, colour = year)) +
   geom_line() +
   ylim(0,11000)
+
+p2 <-
+  ggplot(dat_plot, aes(x=age, y=pop, colour = year)) +
+  geom_line() +
+  ylim(0,11000)
+
+gridExtra::grid.arrange(p1, p2)
+
+
+## differences
+
+diff_plot <-
+  merge(dat_plot, sim_plot,
+        by = c("age", "ETH.group", "sex", "year"), suffixes = c(".eth", ".sim")) %>%
+  mutate(diff_pop = pop.eth - pop.sim,
+         scaled_diff = diff_pop/pop.eth)
+
+p3 <-
+  ggplot(diff_plot, aes(x=age, y=diff_pop, colour = year)) +
+  ggtitle("ETHPOP - estimated populations") +
+  geom_line()
+
+p3
+p3 + ylim(-2000, 1000)
+
+p4 <-
+  ggplot(diff_plot, aes(x=age, y=scaled_diff, colour = year)) +
+  ggtitle("(ETHPOP - estimated populations)/ETHPOP") +
+  geom_line()
+
+p4
+p4 + ylim(-2, 3)

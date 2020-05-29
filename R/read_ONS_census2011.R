@@ -1,6 +1,10 @@
 
 #' read_ONS_census2011
 #'
+#' uses the requested extract
+#' aggregated groups for age
+#' cob is Europe or not Europe, rather than just UK
+#'
 #' @param dir_name
 #' @param file_name
 #' @param save_dir
@@ -30,7 +34,8 @@ read_ONS_census2011 <- function(dir_name = here::here("raw data"),
     `names<-`(c("sex", "agegrp", "cob", "ethgrp", "pop_EW", "pop_E")) %>%
     na.omit() %>%
     mutate(agegrp = gsub(agegrp, pattern = "Age", replacement = ""),
-           sex = ifelse(sex == "Males", "M", ifelse(sex == "Females", "F", "persons")))
+           sex = ifelse(sex == "Males", "M",
+                        ifelse(sex == "Females", "F", "persons")))
 
 
   ## mapping ethnic groups to ETHPOP

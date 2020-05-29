@@ -15,12 +15,6 @@ library(ggplot2)
 library(demoSynthPop)
 
 
-# model UK-born/non UK-born
-##TODO:
-
-# load ONS starting population
-dat_ons <- read_ONS_census2011()
-
 # load ETHPOP cleaned data
 dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
                     col_types = list(sex = col_character(),
