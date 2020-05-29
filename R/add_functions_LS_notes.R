@@ -5,13 +5,17 @@ age_population <- function(pop,
                            max_age = 100) {
 
   pop %>%
-    mutate(age = ifelse(age < max_age, age + 1, age), # e.g. age 100 means >=100
+    mutate(age = ifelse(age < max_age, age + 1, age), # age 100 means >=100
            year = year + 1) %>%
-    group_by_at(vars(-pop)) %>%
-    summarise(pop = sum(pop)) %>%             # sum all (previous and new) max ages
+    group_by(ETH.group, sex, year, age) %>%
+    summarise(pop = sum(pop)) %>%             # sum all (previous and new) 100 ages
     ungroup()
 }
-
+# ok so this is creating a function called age_population with the arguments pop, max age = 100
+# it takes pop then creates some new variables, so if age is less than max_age (100), add one, if not
+# keep it at 100, then year is year + 1
+# Then groups those by eth.group, sex and age then is summarises thie sum of all the  ages ??? and then
+# ungroups
 
 # newborn population increase
 #
@@ -21,9 +25,6 @@ add_births <- function(pop,
 
   if (any(pop$age == 0)) stop("Shouldn't be any 0 aged in population data")
   if (all(is.na(dat_births))) return(pop)
-
-
-  ##TODO: include UK born in is_prop...
 
   # counts for eligible population
   if (is_prop) {
@@ -79,25 +80,16 @@ change_pop <- function(delta_col,
 
     if (all(is.na(dat))) return(pop)
 
-    join_cols <- names(pop)[names(pop) %in% c("age", "ETH.group", "sex", "year", "CoB")]
-
     dat %>%
-      select_at(vars(-contains("X1"))) %>%   # remove column
+      select_at(vars(-contains("X1"))) %>%         # remove column
       merge(pop,
-            by = join_cols,
-            all.y = TRUE) %>%
-            # all = TRUE) %>%  ##TODO: may not be some inflow already in pop
-                               ##      for now assume all groups already in pop
-                               ##      would need to filter dat
+            by = c("year", "age", "ETH.group", "sex")) %>%
       mutate(is_prop = is_prop,
-             adj = ifelse(is.na(!!delta_col),
-                          yes = 0,
-                          no = !!delta_col),
              pop = ifelse(is_prop,
-                          yes = pop + direction*pop*adj,
-                          no  = pop + direction*adj)) %>%
+                          yes = pop + direction*pop*(!!delta_col),
+                          no  = pop + direction*(!!delta_col))) %>%
       arrange(year, ETH.group, sex, age) %>%
-      select(-!!delta_col, -is_prop, -adj) %>%
+      select(-!!delta_col, -is_prop) %>%
       as_tibble()
   }
 }

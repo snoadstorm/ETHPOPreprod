@@ -15,16 +15,29 @@ library(ggplot2)
 library(demoSynthPop)
 
 
-# load ETHPOP cleaned data
-dat_pop <- read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
-                    col_types = list(sex = col_character(),
-                                     age = col_double(),
-                                     year = col_double()))
+# model UK-born/non UK-born
+##TODO:
 
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv", col_types = list(sex = col_character()))
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv", col_types = list(sex = col_character()))
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_Leeds2.csv", col_types = list(sex = col_character()))
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv", col_types = list(sex = col_character()))
+# load ONS starting population
+dat_ons <- read_ONS_census2011()
+
+# load ETHPOP cleaned data
+dat_pop <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
+                    col_types = list(sex = col_character(), age = col_double()))
+# creating objects that are tibbles using the output data - specifying sex is a character and age is a number
+# note that I've had to change the file path from Nathan's script because it wasn't working for me
+
+dat_inflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
+                       col_types = list(sex = col_character(), age = col_double()))
+
+dat_outflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
+                        col_types = list(sex = col_character(), age = col_double()))
+
+dat_births <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_births_Leeds2.csv",
+                       col_types = list(sex = col_character()))
+
+dat_deaths <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
+                       col_types = list(sex = col_character(), age = col_double()))
 
 
 res <-
@@ -48,7 +61,7 @@ sim_plot <-
          ETH.group == "BAN",
          year %in% c(2011, 2020, 2030, 2040, 2050, 2060)) %>%
   mutate(year = as.factor(year))
-  # mutate(eth_sex_year = interaction(ETH.group, sex, year))
+# mutate(eth_sex_year = interaction(ETH.group, sex, year))
 
 dat_plot <-
   dat_pop %>%
