@@ -91,7 +91,9 @@ res <-
             dat_births,
             dat_deaths,
             dat_inflow,
-            dat_outflow)
+            dat_outflow,
+            n_years = 3,
+            max_age = 90)
 
 sim_pop <- bind_rows(res)
 

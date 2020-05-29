@@ -7,7 +7,8 @@ age_population <- function(pop,
   pop %>%
     mutate(age = ifelse(age < max_age, age + 1, age), # age 100 means >=100
            year = year + 1) %>%
-    group_by(ETH.group, sex, year, age) %>%
+    # group_by(ETH.group, sex, year, age) %>%
+    group_by(CoB, ETH.group, sex, year, age) %>%
     summarise(pop = sum(pop)) %>%             # sum all (previous and new) 100 ages
     ungroup()
 }
@@ -22,6 +23,7 @@ add_births <- function(pop,
   if (any(pop$age == 0)) stop("Shouldn't be any 0 aged in population data")
   if (all(is.na(dat_births))) return(pop)
 
+  ##TODO: include UK born in is_prop...
   # counts for eligible population
   if (is_prop) {
 
@@ -42,7 +44,8 @@ add_births <- function(pop,
 
   dat_births %>%
     select_at(vars(-contains("X1"))) %>% # remove column
-    mutate(age = 0) %>%                  # everyone is age 0
+    mutate(age = 0,                      # everyone is: age 0
+           CoB = "UK born") %>%          #              UK born
     filter(year == pop$year[1],
            ETH.group %in% unique(pop$ETH.group),
            sex %in% unique(pop$sex)) %>%
