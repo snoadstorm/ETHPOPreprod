@@ -20,7 +20,6 @@ library(demoSynthPop)
 # dat_ons <- read_ONS_census2011()
 
 
-# load joined LFS and ETHPOP formatted data
 # original data from where?
 dat_pop <-
   read_csv("~/R/demoSynthPop/output_data/clean_census2011.csv",
@@ -36,8 +35,7 @@ dat_pop <-
   ungroup()
 
 
-
-# explicitly define sex so not coerced to logical
+# explicitly define sex column so not coerced to logical
 dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
                        col_types = list(sex = col_character()))
 dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
@@ -48,95 +46,13 @@ dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
                        col_types = list(sex = col_character()))
 
 
-# harmonise ETHPOP with initial population -------------------------------
+# harmonise ETHPOP with initial population
 
-dat_inflow <-
-  dat_inflow %>%
-  mutate(ETH.group =
-           case_when(
-             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
-             ETH.group %in% c("WBI","WHO") ~ "White",
-             ETH.group == "BAN" ~ "Bangladeshi",
-             ETH.group == "BLA" ~ "Black-African",
-             ETH.group == "BLC" ~ "Black-Caribbean",
-             ETH.group == "OBL" ~ "Black-Other",
-             ETH.group == "CHI" ~ "Chinese",
-             ETH.group == "IND" ~ "Indian",
-             ETH.group == "PAK" ~ "Pakistan"),
-         age = ifelse(age %in% 85:100, 85, age)) %>%             # make 90 max single age
-  group_by(sex, age, ETH.group, year) %>%
-  summarise(inmigrants = sum(inmigrants)) %>%
-  mutate(CoB = "Non-UK born")
+dat_inflow <- harmonise_ons_inflow(dat_inflow)
+dat_outflow <- harmonise_ons_outflow(dat_outflow)
+dat_births <- harmonise_ons_births(dat_births)
+dat_deaths <- harmonise_ons_deaths(dat_deaths)
 
-dat_outflow <-
-  dat_outflow %>%
-  mutate(ETH.group =
-           case_when(
-             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
-             ETH.group %in% c("WBI","WHO") ~ "White",
-             ETH.group == "BAN" ~ "Bangladeshi",
-             ETH.group == "BLA" ~ "Black-African",
-             ETH.group == "BLC" ~ "Black-Caribbean",
-             ETH.group == "OBL" ~ "Black-Other",
-             ETH.group == "CHI" ~ "Chinese",
-             ETH.group == "IND" ~ "Indian",
-             ETH.group == "PAK" ~ "Pakistan"),
-         age = ifelse(age %in% 85:100, 85, age)) %>%
-  group_by(sex, age, ETH.group, year) %>%
-  summarise(outmigrants = sum(outmigrants)) %>%
-  ungroup() %>%
-  mutate(`UK born` = outmigrants/2,                   # assume 50/50 between UK born/Non-UK born
-         `Non-UK born` = outmigrants/2) %>%
-  reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
-                 id.vars = c("sex", "age", "ETH.group", "year"),
-                 variable.name = "CoB",
-                 value.name = "outmigrants") %>%
-  as_tibble()
-
-dat_births <-
-  dat_births %>%
-  mutate(ETH.group =
-           case_when(
-             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
-             ETH.group %in% c("WBI","WHO") ~ "White",
-             ETH.group == "BAN" ~ "Bangladeshi",
-             ETH.group == "BLA" ~ "Black-African",
-             ETH.group == "BLC" ~ "Black-Caribbean",
-             ETH.group == "OBL" ~ "Black-Other",
-             ETH.group == "CHI" ~ "Chinese",
-             ETH.group == "IND" ~ "Indian",
-             ETH.group == "PAK" ~ "Pakistan")) %>%
-  group_by(sex, ETH.group, year) %>%
-  summarise(births = sum(births)) %>%
-  mutate(CoB = "UK born")
-
-dat_deaths <-
-  dat_deaths %>%
-  mutate(ETH.group =
-           case_when(
-             ETH.group %in% c("MIX","OAS","OTH") ~ "Mixed/Other",
-             ETH.group %in% c("WBI","WHO") ~ "White",
-             ETH.group == "BAN" ~ "Bangladeshi",
-             ETH.group == "BLA" ~ "Black-African",
-             ETH.group == "BLC" ~ "Black-Caribbean",
-             ETH.group == "OBL" ~ "Black-Other",
-             ETH.group == "CHI" ~ "Chinese",
-             ETH.group == "IND" ~ "Indian",
-             ETH.group == "PAK" ~ "Pakistan"),
-         age = ifelse(age %in% 85:100, 85, age)) %>%
-  group_by(sex, age, ETH.group, year) %>%
-  summarise(deaths = sum(deaths)) %>%
-  ungroup() %>%
-  mutate(`UK born` = deaths/2,                   # assume 50/50 between UK born/Non-UK born
-         `Non-UK born` = deaths/2) %>%
-  reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
-                 id.vars = c("sex", "age", "ETH.group", "year"),
-                 variable.name = "CoB",
-                 value.name = "deaths") %>%
-  as_tibble()
-
-
-# -------------------------------------------------------------------------
 
 res <-
   run_model(dat_pop,
