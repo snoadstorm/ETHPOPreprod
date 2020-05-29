@@ -40,7 +40,7 @@ lfs <-
            ethgrp == "White" ~ "WBI+WHO",
            ethgrp == "Mixed" ~ "MIX",
            ethgrp == "Other" ~ "OTH",
-           ethgrp == "Black/Black British" ~ "BLA+BAN+BLC+OBL",
+           ethgrp == "Black/Black British" ~ "BLA+BLC+OBL",
            TRUE ~ NA_character_),
          Age = as.character(Age),                   # otherwise factor conversion: age 0 => 1
          Age = ifelse(Age == "90+", "90", Age),
@@ -79,7 +79,7 @@ dat_lfs <-
   arrange(ETH.group, sex, age)
 
 
-# impute missing values with regression -----------------------------------
+# impute missing values with logistic regression ---------------------------
 
 regn_dat <-
   dat_lfs %>%
@@ -105,20 +105,20 @@ all_agesexeth$`UK born` <- pred
 all_agesexeth$`Non-UK born` <- 1 - pred
 
 pred_lfs <-
-  reshape2::melt(all_agesexeth, measure.vars = c("UK born", "Non-UK born"),
+  reshape2::melt(all_agesexeth,
+                 measure.vars = c("UK born", "Non-UK born"),
                  variable.name = "CoB",
                  value.name = "pred")
 
-
-dat <-
+dat_lfs <-
   pred_lfs %>%
   merge(dat_lfs, all.x = TRUE) %>%
-  merge(est_pop = sum*pred)
+  mutate(est_pop = round(sum*pred, 0))
 
 
 # ETHPOP ------------------------------------------------------------------
 
-# load and clean
+# load and format
 dat_pop <-
   read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
            col_types = list(sex = col_character(),
@@ -129,8 +129,8 @@ dat_pop <-
 # prep for LFS join
 dat_pop <-
   dat_pop %>%
-  mutate(ETH.group = ifelse(ETH.group %in% c("BAN","BAN","BLC","OBL"), # harmonise ethgrp with LFS
-                            "BLA+BAN+BLC+OBL", ETH.group),
+  mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),       # harmonise ethgrp with LFS
+                            "BLA+BLC+OBL", ETH.group),
          ETH.group = ifelse(ETH.group %in% c("WBI","WHO"),
                             "WBI+WHO", ETH.group),
          ETH.group = ifelse(ETH.group %in% c("CHI","OAS"),
@@ -143,19 +143,25 @@ dat_pop <-
 
 # join ETHPOP and LFS
 
-# check populations
-# aggregated
-# dat <- merge(dat_lfs_total, dat_pop,
-#              by = c("sex", "age", "ETH.group"),
-#              suffixes = c("_lfs", "_eth"))
-
+# # check populations aggregated
+  # dat <-
+  # merge(dat_lfs, dat_pop,
+  #       by = c("sex", "age", "ETH.group"),
+  #       suffixes = c("_lfs", "_eth")) %>%
+  # mutate(pop_raw = round(pop_eth*p_CoB, 0),       #
+  #        pop_pred = round(pop_eth*pred, 0),
+  #        year = base_year) %>%
+  # select(year, sex, age, ETH.group, CoB, pop_eth, pop_lfs, pop_raw, pop_pred)
 
 dat <-
   merge(dat_lfs, dat_pop,
         by = c("sex", "age", "ETH.group"),
         suffixes = c("_lfs", "_eth")) %>%
-  mutate(pop = round(pop_eth*p_CoB, 0),
+  mutate(pop = round(pop_eth*pred, 0),
          year = base_year) %>%
   select(year, sex, age, ETH.group, CoB, pop)
+
+
+# save output
 
 write.csv(dat, file = "output_data/joined_ETHPOP_LFS_2011.csv")
