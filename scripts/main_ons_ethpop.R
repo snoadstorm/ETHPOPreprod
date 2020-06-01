@@ -1,5 +1,4 @@
 
-#
 # create synthetic cohort
 # using joined ONS census and ETHPOP in/out flow data
 # including UK born/Non-UK born
@@ -65,6 +64,7 @@ res <-
 
 sim_pop <- bind_rows(res)
 
+write.csv(sim_pop, file = "output_data/run_model_output_ons2011.csv")
 
 
 ########
@@ -81,7 +81,49 @@ sim_plot <-
   mutate(year = as.factor(year))
 
 
-ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(CoB, year))) +
+ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(year, CoB))) +
+  scale_color_manual(values=c(rep("#CC6666",3), rep("#9999CC",3))) +
   geom_line() +
   ylim(0, 11000) + xlim(0,90)
 
+
+
+# all ethnic groups
+
+
+sim_plot <-
+  sim_pop %>%
+  filter(sex == "M",
+         year %in% c(2011, 2020, 2030)
+  ) %>%
+  mutate(year = as.factor(year))
+
+ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(year, CoB))) +
+  scale_color_manual(values=c(rep("#CC6666",3), rep("#9999CC",3))) +
+  geom_line() +
+  facet_grid(~ETH.group) +
+  ylim(0, 11000) + xlim(0,90)
+
+
+p <- list()
+for (var in unique(sim_plot$ETH.group)) {
+  pdat <-
+    sim_plot %>%
+    filter(ETH.group == var)
+
+  # dev.new()
+  p[[var]] <-
+    ggplot(pdat, aes(x=age, y=pop, colour = interaction(year, CoB))) +
+      geom_line() +
+      ggtitle(var) +
+      theme_bw() +
+      ylim(0, NA) +#11000) +
+      xlim(0,90)
+}
+
+q <-
+  gridExtra::grid.arrange(p[[1]], p[[2]], p[[3]],
+                          p[[4]], p[[5]], p[[6]],
+                          p[[7]], p[[8]], p[[9]], ncol =3)
+
+ggsave(q, filename = "all_ethgrp_UKborn_age_lines.png", scale = 3)
