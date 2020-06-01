@@ -22,7 +22,7 @@ harmonise_lfs_inflow <- function(dat_inflow) {
 
 #
 harmonise_lfs_outflow <- function(dat_outflow,
-                                  p_UKborn_outflow = 0.5) {
+                                  prob_UKborn = 0.5) {
 
   dat_outflow %>%
     mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
@@ -35,8 +35,8 @@ harmonise_lfs_outflow <- function(dat_outflow,
     group_by(sex, age, ETH.group, year) %>%
     summarise(outmigrants = sum(outmigrants)) %>%
     ungroup() %>%
-    mutate(`UK born` = outmigrants*p_UKborn_outflow,
-           `Non-UK born` = outmigrants*(1 - p_UKborn_outflow)) %>%
+    mutate(`UK born` = outmigrants*prob_UKborn,
+           `Non-UK born` = outmigrants*(1 - prob_UKborn)) %>%
     reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
                    id.vars = c("sex", "age", "ETH.group", "year"),
                    variable.name = "CoB",
@@ -60,7 +60,8 @@ harmonise_lfs_births <- function(dat_births) {
 }
 
 # assume 50/50 UK born/Non-UK born
-harmonise_lfs_deaths <- function(dat_deaths) {
+harmonise_lfs_deaths <- function(dat_deaths,
+                                 prob_UKborn = 0.5) {
 
   dat_deaths %>%
     mutate(ETH.group = ifelse(ETH.group %in% c("BLA","BLC","OBL"),
@@ -73,8 +74,8 @@ harmonise_lfs_deaths <- function(dat_deaths) {
     group_by(sex, age, ETH.group, year) %>%
     summarise(deaths = sum(deaths)) %>%
     ungroup() %>%
-    mutate(`UK born` = deaths*0.5,                   # assume 50/50 between UK born/Non-UK born
-           `Non-UK born` = deaths*0.5) %>%
+    mutate(`UK born` = deaths*prob_UKborn,                   # assume 50/50 between UK born/Non-UK born
+           `Non-UK born` = deaths*(1 - prob_UKborn)) %>%
     reshape2::melt(measure.vars = c("UK born", "Non-UK born"),
                    id.vars = c("sex", "age", "ETH.group", "year"),
                    variable.name = "CoB",
