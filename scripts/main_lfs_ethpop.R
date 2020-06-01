@@ -1,5 +1,4 @@
 
-#
 # create synthetic cohort
 # using joined LFS and ETHPOP in/out flow data
 # including UK born/Non-UK born
