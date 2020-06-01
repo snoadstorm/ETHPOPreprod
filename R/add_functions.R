@@ -1,6 +1,8 @@
 
 # increment everyone by one year
 #
+##TODO: increment time in country for non-UK born
+#
 age_population <- function(pop,
                            max_age = 100) {
 
@@ -10,6 +12,9 @@ age_population <- function(pop,
     group_by_at(vars(-pop)) %>%
     summarise(pop = sum(pop)) %>%             # sum all (previous and new) max ages
     ungroup()
+
+  # max_timeinUK = 5
+  # ifelse(timeinUK < max_timeinUK, timeinUK + 1, timeinUK)
 }
 
 

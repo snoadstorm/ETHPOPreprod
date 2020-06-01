@@ -16,7 +16,8 @@ base_year <- 2011
 
 # load and format
 lfs <-
-  read_rds("C:/Users/Nathan/Documents/R/tbinenglanddataclean/output_data/formatted_LFS_2010_2016.rds") %>%
+  # read_rds("C:/Users/Nathan/Documents/R/tbinenglanddataclean/output_data/formatted_LFS_2010_2016.rds") %>%
+  read_rds("D:/data/formatted_LFS_2010_2012.rds") %>%
   filter(
     Year == base_year,
     Country == "England") %>%                       # single year cohort
