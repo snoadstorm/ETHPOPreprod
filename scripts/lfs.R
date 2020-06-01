@@ -16,7 +16,7 @@ base_year <- 2011
 
 # load and format
 lfs <-
-  read_rds("C:/Users/Nathan/Documents/R/tbinenglanddataclean/output_data/formatted_LFS_2010_2016.rds") %>%
+  read_rds("/Users/laurasnoad/Documents/R_Projects/tbinenglanddataclean/output_data/formatted_LFS_2010_2016.rds") %>%
   filter(
     Year == base_year,
     Country == "England") %>%                       # single year cohort
@@ -120,7 +120,7 @@ dat_lfs <-
 
 # load and format
 dat_pop <-
-  read_csv("~/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
+  read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_pop_Leeds2.csv",
            col_types = list(sex = col_character(),
                             age = col_double(),
                             year = col_double())) %>%

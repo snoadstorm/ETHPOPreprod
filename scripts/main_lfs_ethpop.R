@@ -17,19 +17,19 @@ library(demoSynthPop)
 
 
 # load joined LFS and ETHPOP formatted data
-dat_pop <- read_csv("~/R/demoSynthPop/output_data/joined_ETHPOP_LFS_2011.csv",
+dat_pop <- read_csv("/Users/laurasnoad/Documents/R_Projects/demoSynthPop/output_data/joined_ETHPOP_LFS_2011.csv",
                     col_types = list(sex = col_character(),
                                      age = col_double(),
                                      year = col_double()))
 
 # explicitly define sex so not coerced to logical
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
+dat_inflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
                        col_types = list(sex = col_character()))
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
+dat_outflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
                         col_types = list(sex = col_character()))
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_Leeds2.csv",
+dat_births <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_births_Leeds2.csv",
                        col_types = list(sex = col_character()))
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
+dat_deaths <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
                        col_types = list(sex = col_character()))
 
 

@@ -22,7 +22,7 @@ library(demoSynthPop)
 
 # original data from where?
 dat_pop <-
-  read_csv("~/R/demoSynthPop/output_data/clean_census2011.csv",
+  read_csv("/Users/laurasnoad/Documents/R_Projects/demoSynthPop/output_data/clean_census2011.csv",
            col_types = list(sex = col_character(),
                             year = col_double())) %>%
   rename(ETH.group = ethgrp,                                ##TODO: move to cleaning function...
@@ -36,13 +36,13 @@ dat_pop <-
 
 
 # explicitly define sex column so not coerced to logical
-dat_inflow <- read_csv("~/R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
+dat_inflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv",
                        col_types = list(sex = col_character()))
-dat_outflow <- read_csv("~/R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
+dat_outflow <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv",
                         col_types = list(sex = col_character()))
-dat_births <- read_csv("~/R/cleanETHPOP/output_data/clean_births_Leeds2.csv",
+dat_births <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_births_Leeds2.csv",
                        col_types = list(sex = col_character()))
-dat_deaths <- read_csv("~/R/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
+dat_deaths <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/output_data/clean_deaths_Leeds2.csv",
                        col_types = list(sex = col_character()))
 
 
