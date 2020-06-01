@@ -27,7 +27,6 @@ harmonise_ons_inflow <- function(dat_inflow){
 #
 harmonise_ons_outflow <- function(dat_outflow,
                                   prob_UKborn = 0.5) {
-
   dat_outflow %>%
     mutate(ETH.group =
              case_when(

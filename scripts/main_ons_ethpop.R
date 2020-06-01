@@ -147,7 +147,7 @@ q <-
 ggsave(q, filename = "ethgrp_UKborn_years_lines.png", scale = 3)
 
 
-# % UK born over time ----
+# % or pop UK born over time ----
 
 sim_plot <-
   sim_pop %>%
