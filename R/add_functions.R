@@ -13,6 +13,7 @@ age_population <- function(pop,
     summarise(pop = sum(pop)) %>%             # sum all (previous and new) max ages
     ungroup()
 
+  ##TODO:
   # max_timeinUK = 5
   # ifelse(timeinUK < max_timeinUK, timeinUK + 1, timeinUK)
 }
@@ -88,19 +89,22 @@ change_pop <- function(delta_col,
 
     dat %>%
       select_at(vars(-contains("X1"))) %>%   # remove column
+      filter(year == pop$year[1],
+             ETH.group %in% unique(pop$ETH.group),
+             sex %in% pop$sex) %>%
       merge(pop,
             by = join_cols,
-            all.y = TRUE) %>%
-            # all = TRUE) %>%  ##TODO: may not be some inflow already in pop
-                               ##      for now assume all groups already in pop
-                               ##      would need to filter dat
+            # all.y = TRUE) %>%    # assume all groups already in pop
+            all = TRUE) %>%        # may not be some inflow already in pop
       mutate(is_prop = is_prop,
              adj = ifelse(is.na(!!delta_col),
                           yes = 0,
                           no = !!delta_col),
              pop = ifelse(is_prop,
                           yes = pop + direction*pop*adj,
-                          no  = pop + direction*adj)) %>%
+                          no  = ifelse(is.na(pop),
+                                       yes = direction*adj,
+                                       no  = pop + direction*adj))) %>% # when pop is missing
       arrange(year, ETH.group, sex, age) %>%
       select(-!!delta_col, -is_prop, -adj) %>%
       as_tibble()
