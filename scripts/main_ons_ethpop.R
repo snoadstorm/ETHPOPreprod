@@ -47,10 +47,10 @@ dat_deaths <- read_csv("/Users/laurasnoad/Documents/R_Projects/cleanETHPOP/outpu
 
 # harmonise ETHPOP with initial population
 
-dat_inflow <- harmonise_ons_inflow(dat_inflow)
+dat_inflow  <- harmonise_ons_inflow(dat_inflow)
 dat_outflow <- harmonise_ons_outflow(dat_outflow)
-dat_births <- harmonise_ons_births(dat_births)
-dat_deaths <- harmonise_ons_deaths(dat_deaths)
+dat_births  <- harmonise_ons_births(dat_births)
+dat_deaths  <- harmonise_ons_deaths(dat_deaths)
 
 
 res <-
@@ -87,9 +87,7 @@ ggplot(sim_plot, aes(x=age, y=pop, colour = interaction(year, CoB))) +
   ylim(0, 11000) + xlim(0,90)
 
 
-
-# all ethnic groups
-
+# all ethnic groups by age ----
 
 sim_plot <-
   sim_pop %>%
@@ -114,11 +112,11 @@ for (var in unique(sim_plot$ETH.group)) {
   # dev.new()
   p[[var]] <-
     ggplot(pdat, aes(x=age, y=pop, colour = interaction(year, CoB))) +
-      geom_line() +
-      ggtitle(var) +
-      theme_bw() +
-      ylim(0, NA) +#11000) +
-      xlim(0,90)
+    geom_line() +
+    ggtitle(var) +
+    theme_bw() +
+    ylim(0, NA) +#11000) +
+    xlim(0,90)
 }
 
 q <-
@@ -127,3 +125,62 @@ q <-
                           p[[7]], p[[8]], p[[9]], ncol =3)
 
 ggsave(q, filename = "all_ethgrp_UKborn_age_lines.png", scale = 3)
+
+
+# UK born/Non-UK born by year ----
+
+sim_plot <-
+  sim_pop %>%
+  filter(sex == "M"
+         # ETH.group == "Bangladeshi"
+  ) %>%
+  group_by(year, CoB, ETH.group) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  mutate(year = as.numeric(as.character(year)))
+
+q <-
+  ggplot(sim_plot, aes(x=year, y=pop, colour = CoB)) +
+  geom_line() +
+  facet_wrap(~ETH.group, nrow = 2, scales = "free")
+
+ggsave(q, filename = "ethgrp_UKborn_years_lines.png", scale = 3)
+
+
+# % or pop UK born over time ----
+
+sim_plot <-
+  sim_pop %>%
+  # filter(age == 20) %>%
+  mutate(agegrp = cut(age, seq(0,100,by = 5), right = FALSE),
+         pop = ifelse(pop < 0 , 0 ,pop)) %>%                  ##TODO: why negative pop?
+  group_by(CoB, ETH.group, agegrp, year) %>%
+  summarise(pop = sum(pop)) %>%
+  group_by(ETH.group, agegrp, year) %>%
+  mutate(sum = sum(pop)) %>%
+  ungroup() %>%
+  mutate(prop = pop/sum)
+
+
+sim_plot[sim_plot$agegrp == "[20,25)", ] %>%
+  ggplot(aes(x=year, y=prop, colour = CoB)) +
+  geom_line() +
+  ylim(0, 1) +
+  facet_grid(sex~ETH.group)
+
+
+p <- list()
+for (var in unique(sim_plot$agegrp)) {
+
+  dat <- sim_plot[sim_plot$agegrp == var, ]
+
+    p[[var]] <-
+      # ggplot(dat, aes(x=year, y=prop, colour = CoB)) +  # proportion UK born/Non-UK born
+      ggplot(dat, aes(x=year, y=pop, colour = CoB)) +     # absolute counts
+      geom_line() +
+      ylim(0, 30000) +
+      # facet_grid(sex~ETH.group, scales = "free")
+      facet_grid(~ETH.group, scales = "free")
+
+    print(p[[var]] + ggtitle(var))
+}
