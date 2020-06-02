@@ -59,7 +59,7 @@ res <-
             dat_deaths,
             dat_inflow,
             dat_outflow,
-            n_years = 20,
+            n_years = 40,
             max_age = 85)
 
 sim_pop <- bind_rows(res)
@@ -142,12 +142,15 @@ sim_plot <-
 q <-
   ggplot(sim_plot, aes(x=year, y=pop, colour = CoB)) +
   geom_line() +
-  facet_wrap(~ETH.group, nrow = 2, scales = "free")
+  facet_wrap(~ETH.group, nrow = 2, scales = "free") +
+  ggtitle("UK born/Non-UK born by year")
+
+q
 
 ggsave(q, filename = "ethgrp_UKborn_years_lines.png", scale = 3)
 
 
-# % or pop UK born over time ----
+# % or pop UK born over time for ethnic and age group ----
 
 sim_plot <-
   sim_pop %>%
@@ -162,11 +165,12 @@ sim_plot <-
   mutate(prop = pop/sum)
 
 
-sim_plot[sim_plot$agegrp == "[20,25)", ] %>%
-  ggplot(aes(x=year, y=prop, colour = CoB)) +
-  geom_line() +
-  ylim(0, 1) +
-  facet_grid(sex~ETH.group)
+## check
+# sim_plot[sim_plot$agegrp == "[20,25)", ] %>%
+#   ggplot(aes(x=year, y=prop, colour = CoB)) +
+#   geom_line() +
+#   ylim(0, 1) +
+#   facet_grid(~ETH.group)
 
 
 p <- list()
@@ -178,9 +182,8 @@ for (var in unique(sim_plot$agegrp)) {
       # ggplot(dat, aes(x=year, y=prop, colour = CoB)) +  # proportion UK born/Non-UK born
       ggplot(dat, aes(x=year, y=pop, colour = CoB)) +     # absolute counts
       geom_line() +
-      ylim(0, 30000) +
-      # facet_grid(sex~ETH.group, scales = "free")
-      facet_grid(~ETH.group, scales = "free")
+      facet_wrap(~ETH.group, scales = "free_y") #+
+      # ylim(0, 30000)
 
     print(p[[var]] + ggtitle(var))
 }

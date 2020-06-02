@@ -5,7 +5,10 @@ library(readr)
 library(dplyr)
 library(demoSynthPop)
 
+# ETHPOP initial population
 dat_pop0 <- read_csv("C:/Users/Nathan/Documents/R/cleanETHPOP/output_data/clean_pop_Leeds2.csv")
+
+# ETHPOP flow data
 dat_inflow <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_inmigrants_Leeds2.csv")
 dat_outflow <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_outmigrants_Leeds2.csv")
 dat_births <- read_csv("C:/Users/Nathan/Documents//R/cleanETHPOP/output_data/clean_births_Leeds2.csv")
@@ -136,11 +139,16 @@ test_that("inflow", {
 
   expect_type(res, type = "list")
 
+  # list names
   expect_true(all(names(res) == 2011:2012))
 
+  # column names
   expect_true(all(names(res[[1]]) == c("age", "ETH.group", "sex", "pop", "year")))
 
-  inflow2012 <-
+
+  # specific ages
+
+  in2012_20 <-
     dat_inflow %>%
     filter(year == 2012,
            sex == "M",
@@ -148,22 +156,34 @@ test_that("inflow", {
            ETH.group == "BAN") %>%
     select(inmigrants)
 
-  # one year younger plus direct inflow value
-  expect_true(
-    res$`2012`$pop[res$`2012`$age == 20] ==
-      (res$`2011`$pop[res$`2011`$age == 19] + inflow2012))
-
-  inflow100 <-
+  in2012_0 <-
     dat_inflow %>%
     filter(year == 2012,
            sex == "M",
-           age == 100,
+           age == 0,
            ETH.group == "BAN") %>%
     select(inmigrants)
 
+  in2012_100 <-
+    dat_inflow %>%
+    filter(year == 2012,
+           sex == "M",
+           age == 99,
+           ETH.group == "BAN") %>%
+    select(inmigrants)
+
+  # one year younger plus direct inflow value
+  expect_true(
+    res$`2012`$pop[res$`2012`$age == 20] ==
+      (res$`2011`$pop[res$`2011`$age == 19] + in2012_20))
+
+  expect_true(
+    res$`2012`$pop[res$`2012`$age == 0] == in2012_0)
+
+  # in2012_100 = 0 tho so not a real test...
   expect_true(
     res$`2012`$pop[res$`2012`$age == 100] ==
-      (res$`2011`$pop[res$`2011`$age == 99] + res$`2011`$pop[res$`2011`$age == 100] - inflow100)
+      (res$`2011`$pop[res$`2011`$age == 99] + res$`2011`$pop[res$`2011`$age == 100] + in2012_100)
   )
 })
 

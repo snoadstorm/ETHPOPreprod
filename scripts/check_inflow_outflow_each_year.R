@@ -77,14 +77,16 @@ colnames(out) <-
 out
 
 ## plots
+y <- 30
 
 counts <- rbind(
-  c(out[1, "age_out"], out[1, "age_in"], out[1, "inflow"], out[1, "outflow"]),
-  c(out[1, "death"],0,0,0))
+  c(out[y, "age_out"], out[y, "age_in"], out[y, "inflow"], out[y, "outflow"]),
+  c(out[y, "death"],0,0,0))
 
-barplot(counts, main = "",
+barplot(counts, main = y + 2011 - 1,
         xlab = "", col=c("blue","red"),
-        legend = rownames(counts))
+        legend = rownames(counts),
+        names.arg = c("age out/deaths", "age in", "inflow", "outflow"))
 
 
 
